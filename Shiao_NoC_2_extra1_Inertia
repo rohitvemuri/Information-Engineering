@@ -49,6 +49,8 @@ void draw() {
   } else {
     rect(location.x, location.y, boxSize, boxSize); //this makes the initial rectangle
   }
+  text("Inertia demonstration: Move the object with your mouse and the object "+
+       "will continue to move in the same direction",(2*height)/3,width/2);
 }
 
 void mousePressed() {
