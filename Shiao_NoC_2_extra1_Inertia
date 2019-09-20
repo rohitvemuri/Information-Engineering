@@ -1,0 +1,124 @@
+/* James S 9/17/19
+Newton's Laws
+Information Engineering  '19-20     St. Mark's School of Texas 
+
+Code Abstract: Newton's First Law: Inertia
+
+Source(s): Created using https://natureofcode.com/book/
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License v3 as published by the Free Software Foundation
+*/
+
+PVector location; //global location variable, not to be confused with location in inertia class
+int boxSize = 75;
+boolean overBox = false; //detect if mouse is over the box
+boolean lock = false; //when lock is true, box will not move
+float xOffset = 0.0; //you can click anywhere on the box to move it with x and y offset
+float yOffset = 0.0;
+boolean inertiaOn;
+
+Inertia newInertia; //make a new instance of the class
+
+void setup() {
+  surface.setResizable(true);
+  size(1600,900);
+  background(0);
+  frameRate(60);
+  
+  location = new PVector (width/3,height/3);
+  newInertia = new Inertia();
+  rectMode(RADIUS); //make it so the rectangle redraws from the center of it
+}
+
+void draw() { 
+  background(0);
+  println(inertiaOn); //see if inertiaOn is active or not (for debugging)
+  // test if the cursor is over the box 
+  if (mouseX > location.x-boxSize && mouseX < location.x+boxSize && 
+      mouseY > location.y-boxSize && mouseY < location.y+boxSize) {
+    overBox = true;
+  } else {
+    overBox = false;
+  }
+  
+  // this is the inertia 'function'
+  if (inertiaOn) {
+    newInertia.applyInertia();
+    newInertia.drawRect();
+    newInertia.turnInertiaOff();
+  } else {
+    rect(location.x, location.y, boxSize, boxSize); //this makes the initial rectangle
+  }
+}
+
+void mousePressed() {
+  inertiaOn=false;
+  if(overBox) { 
+    lock = true; //lock = true allows drag to move the rectangel
+  } else {
+    lock = false;
+  }
+  xOffset = mouseX-location.x; 
+  yOffset = mouseY-location.y;
+  
+  newInertia.findPrev();
+}
+
+void mouseDragged() {
+  if(lock) {
+    location = new PVector (mouseX-xOffset,mouseY-yOffset);
+  }
+}
+
+void mouseReleased() {
+  lock = false;
+  newInertia.findNew();
+  newInertia.updateLocation();
+  newInertia.findInertia();
+  inertiaOn = true; //start the inertia 'function'
+}
+
+class Inertia {
+  PVector location; //this is local to this class, not to be confused with global location
+  PVector prevMouse;
+  PVector newMouse;
+  PVector inertia; //use prevMouse and newMouse to find inertia
+  
+  Inertia() {
+    location = new PVector (width/3,height/3);
+    prevMouse = new PVector (width/3,height/3); //this is arbitrary
+    newMouse = new PVector (width/3,height/3); //this is arbitrary
+    inertia = new PVector (0,0); //this will be changed by mouse interaction
+  }
+  
+  void updateLocation() {
+   location = new PVector (mouseX,mouseY); //update local location when global location updates
+  }
+  
+  void findPrev() {
+    prevMouse = new PVector (mouseX,mouseY); //used in mousePressed
+  }
+  
+  void findNew() {
+    newMouse = new PVector (mouseX,mouseY); //used in mouseReleased
+  }
+  
+  void findInertia() {
+    inertia = newMouse.sub(prevMouse);
+    inertia = inertia.mult(0.2);
+  }
+  
+  void applyInertia() {
+    location = location.add(inertia);
+  }
+  
+  void drawRect() {
+    rect(location.x-xOffset,location.y-yOffset,boxSize,boxSize); //redraw the box moving
+  }
+  
+  void turnInertiaOff() {
+    if ((location.x<-200 || location.x>width+200) || (location.y<-200 || location.y>height+200)) {
+      inertiaOn = false; //inertiaOn turns off outside of the screen, the function will stop 
+    }
+  }
+}
